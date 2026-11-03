@@ -15,7 +15,8 @@ cd backend
 cp .env.example .env                       # fill GOOGLE_CLIENT_ID, SLACK_*, BULL_BOARD_PASS
 npm install
 npx prisma migrate dev --name init
-npm run seed                               # creates 2 Ethereal sender accounts
+npm run seed                               # creates 2 distinct Ethereal sender accounts
+                                           # (npm run seed -- --reset replaces them; restart the backend after)
 npm run dev                                # API + worker on :4000
 
 cd ../frontend
@@ -27,9 +28,7 @@ npm run dev                                # http://localhost:3000
 **Google OAuth:** create a Web OAuth client; authorized redirect URI
 `http://localhost:3000/api/auth/callback/google`. Use the same client ID in both `.env` files.
 
-**Slack (optional):** create a Slack app with the `incoming-webhook` scope and redirect URL
-`https://<ngrok>/api/slack/callback`. Run `ngrok http 4000` only while connecting Slack, and set
-`BACKEND_PUBLIC_URL` to the ngrok URL.
+**Slack (optional):** see [Not configured for demo](#not-configured-for-demo).
 
 **Bull Board:** http://localhost:4000/admin/queues (HTTP basic auth: `BULL_BOARD_USER` / `BULL_BOARD_PASS`).
 
@@ -58,3 +57,23 @@ Use `sample-recipients.csv` in the compose modal for a quick demo (4 unique emai
 - **API and worker in one process** for simplicity; `startWorker()` can move to its own entry point to scale workers independently.
 - **Bull Board** is protected by basic auth only; fine for a demo, not for production.
 - **Frontend polls every 5s** for status updates (UI only — sending is driven by BullMQ).
+
+## Not configured for demo
+
+Slack OAuth ("Connect Slack") and the rate-limit Slack alert are fully implemented
+(`backend/src/slack.ts`, `backend/src/routes/slack.ts`) but were not set up for the demo due to time.
+Without a Slack connection the alert is skipped silently; scheduling and rate limiting work the same.
+
+To enable it:
+
+1. Create a Slack app at https://api.slack.com/apps and add the **`incoming-webhook`** bot scope (OAuth & Permissions).
+2. Expose the backend over https, which Slack requires for redirects: `ngrok http 4000`.
+   Run ngrok only while connecting, since it makes the whole backend public.
+3. In the Slack app, add the redirect URL `https://<ngrok>/api/slack/callback`.
+4. In `backend/.env`, set `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET` (Basic Information → App Credentials)
+   and `BACKEND_PUBLIC_URL=https://<ngrok>`, then restart the backend.
+5. Click **Connect Slack** in the dashboard header and pick a channel.
+
+## Notes
+
+AI assistance (Claude Code) was used for implementation. The architecture and design decisions are documented above.
