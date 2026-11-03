@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum EmailStatus {
+  scheduled
+  sending
+  sent
+  failed
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  googleId  String   @unique
+  email     String
+  name      String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+
+  campaigns Campaign[]
+  slack     SlackConnection?
+}
+
+model Sender {
+  id        Int      @id @default(autoincrement())
+  name      String
+  smtpUser  String
+  smtpPass  String
+  createdAt DateTime @default(now())
+
+  emails Email[]
+}
+
+model Campaign {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  subject     String
+  body        String
+  startTime   DateTime
+  delayMs     Int
+  hourlyLimit Int
+  createdAt   DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id])
+  emails Email[]
+}
+
+model Email {
+  id          Int         @id @default(autoincrement())
+  campaignId  Int
+  senderId    Int
+  recipient   String
+  scheduledAt DateTime
+  status      EmailStatus @default(scheduled)
+  sentAt      DateTime?
+  messageId   String?
+  previewUrl  String?
+  error       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+  sender   Sender   @relation(fields: [senderId], references: [id])
+
+  @@index([status, scheduledAt])
+}
+
+model SlackConnection {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  webhookUrl String
+  channel    String
+  teamName   String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
