@@ -13,7 +13,8 @@ const schema = z.object({
   BACKEND_PUBLIC_URL: z.string().url(),
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
-  ELASTICSEARCH_URL: z.string().url(),
+  // Optional: without it (or if it's unreachable) search falls back to Postgres ILIKE.
+  ELASTICSEARCH_URL: z.preprocess((v) => (v === "" ? undefined : v), z.string().url().optional()),
   GOOGLE_CLIENT_ID: z.string().default(""),
   SLACK_CLIENT_ID: z.string().default(""),
   SLACK_CLIENT_SECRET: z.string().default(""),

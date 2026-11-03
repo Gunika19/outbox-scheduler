@@ -9,7 +9,9 @@
     "start": "tsx src/index.ts",
     "typecheck": "tsc --noEmit",
     "seed": "tsx scripts/seedSenders.ts",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "build": "prisma generate",
+    "migrate:deploy": "prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
