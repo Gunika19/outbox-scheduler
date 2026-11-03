@@ -11,6 +11,7 @@ import { startWorker } from "./worker.js";
 import { reconcile } from "./reconcile.js";
 import { ensureIndex } from "./search.js";
 import { requireAuth } from "./auth.js";
+import { basicAuth } from "./basicAuth.js";
 import { campaignsRouter } from "./routes/campaigns.js";
 import { emailsRouter } from "./routes/emails.js";
 import { meRouter } from "./routes/me.js";
@@ -20,7 +21,7 @@ const app = express();
 app.use(cors({ origin: config.FRONTEND_URL }));
 app.use(express.json({ limit: "5mb" }));
 
-// ---- Public routes (no auth) ----
+// ---- Routes without Google auth ----
 app.get("/health", async (_req, res) => {
   await prisma.$queryRaw`SELECT 1`;
   const pong = await redis.ping();
@@ -30,7 +31,7 @@ app.get("/health", async (_req, res) => {
 const bullBoard = new ExpressAdapter();
 bullBoard.setBasePath("/admin/queues");
 createBullBoard({ queues: [new BullMQAdapter(emailQueue)], serverAdapter: bullBoard });
-app.use("/admin/queues", bullBoard.getRouter());
+app.use("/admin/queues", basicAuth(config.BULL_BOARD_USER, config.BULL_BOARD_PASS), bullBoard.getRouter());
 
 app.get("/api/slack/callback", slackCallback);
 

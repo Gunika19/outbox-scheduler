@@ -17,6 +17,9 @@ const schema = z.object({
   GOOGLE_CLIENT_ID: z.string().default(""),
   SLACK_CLIENT_ID: z.string().default(""),
   SLACK_CLIENT_SECRET: z.string().default(""),
+  // Bull Board (/admin/queues) is behind HTTP basic auth.
+  BULL_BOARD_USER: z.string().min(1),
+  BULL_BOARD_PASS: z.string().min(8),
   // All throughput limits come from env — never hardcoded.
   WORKER_CONCURRENCY: z.coerce.number().int().positive(),
   MIN_DELAY_BETWEEN_SENDS_MS: z.coerce.number().int().nonnegative(),
